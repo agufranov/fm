@@ -6,7 +6,7 @@ export default class FMSound extends BasePitch implements IPitch {
     get alg() { return this._alg }
     set alg(value: Alg) {
         this._alg = value
-        this._applyAlgorithm()
+        this._applyAlg()
     }
     private _alg: Alg = Algs[0]
     setAlg = (value: Alg) => {
@@ -40,7 +40,7 @@ export default class FMSound extends BasePitch implements IPitch {
         this.nodes.forEach(node => node.freq = this.freq)
     }
 
-    private _applyAlgorithm = () => {
+    private _applyAlg = () => {
         this.alg.forEach((slaveNumbers, masterIndex) => {
             const masterNumber = masterIndex + 1
             const master = this.getNode(masterNumber)
