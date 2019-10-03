@@ -1,4 +1,4 @@
-import { IPitch, Alg, Algs } from './interfaces'
+import { IPitch, Alg, Algs, IFMNodeData } from './interfaces'
 import BasePitch from './BasePitch';
 import FMNode from './FMNode';
 
@@ -17,6 +17,11 @@ export default class FMSound extends BasePitch implements IPitch {
     readonly nodes = [0, 1, 2, 3].map(() => new FMNode())
     getNode = (nodeNumber: number) => { return this.nodes[nodeNumber - 1] }
 
+    withNodes = ((callback: (nodes: FMNode[]) => void) => {
+        callback(this.nodes)
+        return this
+    })
+
     withNodeAtIndex = ((nodeNumber: number, callback: (node: FMNode) => void) => {
         callback(this.getNode(nodeNumber))
         return this
@@ -34,6 +39,12 @@ export default class FMSound extends BasePitch implements IPitch {
                 untriggerAll()
                 untrigger()
             })
+    }
+
+    applyData = (data: IFMNodeData[]) => {
+        if (data.length !== this.nodes.length) throw new Error('Incompatible data length!')
+        this.nodes.forEach((node, i) => node.applyData(data[i]))
+        return this
     }
 
     protected _updateFreq = () => {

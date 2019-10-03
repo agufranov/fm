@@ -1,5 +1,6 @@
-import { Alg, Algs } from './interfaces'
+import { Alg, Algs, IFMNodeData, FMNodeType } from './interfaces'
 import FMSound from './FMSound'
+import Envelope from './Envelope'
 
 export default class FMPlayer {
     get alg() { return this._alg }
@@ -9,21 +10,59 @@ export default class FMPlayer {
     }
     private _alg: Alg = Algs[0]
 
-    private _sounds: { [freq: number]: () => void } = {}
+    private _detriggers: { [freq: number]: () => void } = {}
+    private _sounds: { [freq: number]: FMSound } = {}
+    
+    nodesData: IFMNodeData[] = [
+        {
+            envelope: new Envelope({}),
+            gain: 0.2,
+            type: FMNodeType.RATIO,
+            ratio: 1
+        },
+        {
+            envelope: new Envelope({}),
+            gain: 0.2,
+            type: FMNodeType.FIXED,
+            frequency: 300
+        },
+        {
+            envelope: new Envelope({}),
+            gain: 0.2,
+            type: FMNodeType.FIXED,
+            frequency: 200
+        },
+        {
+            envelope: new Envelope({}),
+            gain: 0.2,
+            type: FMNodeType.RATIO,
+            ratio: 4
+        }
+    ]
 
     play = ((freq: number) => {
-        if (this._sounds[freq]) this._sounds[freq]()
-        this._sounds[freq] = new FMSound()
-            .withNodeAtIndex(3, node => node.setFixedFrequency(100).setGain(1000))
-            .withNodeAtIndex(4, node => node.setRatio(3).setGain(300))
+        if (this._detriggers[freq]) this._detriggers[freq]()
+        const sound = new FMSound()
+            .applyData(this.nodesData)
             .setFreq(freq)
             .setAlg(this.alg)
-            .trigger()
+        this._sounds[freq] = sound
+        this._detriggers[freq] = sound.trigger()
     })
 
     stop = ((freq: number) => {
-        this._sounds[freq] && this._sounds[freq]()
+        if (!this._detriggers[freq]) return
+        this._detriggers[freq]()
+        delete this._detriggers[freq]
+        delete this._sounds[freq]
     })
+
+    applyData = (data: IFMNodeData[], updateCurrentSounds = true) => {
+        this.nodesData = data;
+        if (updateCurrentSounds) {
+            Object.values(this._sounds).forEach(sound => sound.applyData(data))
+        }
+    }
 
     private _applyAlg = () => {
     }

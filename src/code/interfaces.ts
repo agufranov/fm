@@ -11,7 +11,28 @@ export interface IPitch {
     trigger: () => () => void
 }
 
-export interface IAmplifiedPitch extends IPitch {
+export interface IAmplified {
     gain: number
     envelope: Envelope
 }
+
+export type IAmplifiedPitch = IPitch & IAmplified
+
+export enum FMNodeType {
+    RATIO = 0,
+    FIXED = 1
+}
+
+interface IFMNodeRatio {
+    type: FMNodeType.RATIO
+    ratio: number
+}
+
+interface IFMNodeFixed {
+    type: FMNodeType.FIXED
+    frequency: number
+}
+
+export type IFMNodeInfo = IFMNodeRatio | IFMNodeFixed
+
+export type IFMNodeData = IAmplified & IFMNodeInfo

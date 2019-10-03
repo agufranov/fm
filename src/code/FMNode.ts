@@ -1,21 +1,5 @@
 import Sound from './Sound';
-
-export enum FMNodeType {
-    RATIO = 0,
-    FIXED = 1
-}
-
-interface IFMNodeRatio {
-    type: FMNodeType.RATIO
-    ratio: number
-}
-
-interface IFMNodeFixed {
-    type: FMNodeType.FIXED
-    frequency: number
-}
-
-export type IFMNodeInfo = IFMNodeRatio | IFMNodeFixed
+import { IFMNodeData, IFMNodeInfo, FMNodeType } from './interfaces';
 
 export default class FMNode extends Sound {
     get info() { return this._info }
@@ -52,6 +36,17 @@ export default class FMNode extends Sound {
 
     disconnect = () => {
         this._amp.disconnect()
+    }
+
+    applyData = (data: IFMNodeData) => {
+        this.setGain(data.gain).setEnvelope(data.envelope)
+        switch (data.type) {
+            case FMNodeType.RATIO:
+                this.setRatio(data.ratio)
+                break
+            case FMNodeType.FIXED:
+                this.setFixedFrequency(data.frequency)
+        }
     }
     
     protected _updateFreq = () => {

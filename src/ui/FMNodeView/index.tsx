@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 import './style.css'
-import FMNode, { FMNodeType } from '../../code/FMNode'
+import FMNode from '../../code/FMNode'
 import Slider from '@material-ui/core/Slider'
+import { FMNodeType, IFMNodeData, IFMNodeInfo } from '../../code/interfaces'
 
 interface IProps {
-    node: FMNode
+    data: IFMNodeData
+    onChange: (data: IFMNodeData, on: boolean) => void
 }
 
 interface IState {
@@ -12,41 +14,86 @@ interface IState {
 }
 
 const FMNodeView: React.FunctionComponent<IProps> = (props) => {
-    const getNodeValue = (node: FMNode) => {
-        switch(node.info.type) {
+    const { data } = props
+    let value: number
+    switch (data.type) {
+        case FMNodeType.RATIO:
+            value = data.ratio
+            break
+        case FMNodeType.FIXED:
+            value = data.frequency
+            break
+        default:
+            throw new Error
+    }
+
+    const toggleType = () => {
+        let newData: IFMNodeData
+        switch(data.type) {
             case FMNodeType.RATIO:
-                return node.info.ratio
+                newData = {
+                    ...data,
+                    type: FMNodeType.FIXED,
+                    frequency: data.ratio
+                }
+                break
             case FMNodeType.FIXED:
-                return node.info.frequency
+                newData = {
+                    ...data,
+                    type: FMNodeType.RATIO,
+                    ratio: data.frequency
+                }
+                break
+            default:
+                throw new Error
         }
+        props.onChange(newData, true)
     }
-
-    const [value, setValue] = useState(getNodeValue(props.node))
-
-    const renderNodeInfo = (node: FMNode) => {
-        return getNodeValue(node)
-    }
-
-    const { node } = props
 
     return (
-        <div>
-            {node.info.type}
-            {renderNodeInfo(node)}
+        <div className='FMNodeView'>
+            <button onClick={toggleType}>
+                {data.type === FMNodeType.RATIO ? 'RATIO' : 'FIXED'}
+            </button>
+            <div>
+                {value}
+            </div>
             <Slider
                 value={value}
                 onChange={(e, v) => {
                     v = v as number
-                    switch(node.info.type) {
+                    if (v === value) return
+                    switch (data.type) {
                         case FMNodeType.RATIO:
-                            node.setRatio(v)
-                            setValue(v)
+                            props.onChange({
+                                ...data,
+                                ratio: v
+                            }, true)
                             break
                         case FMNodeType.FIXED:
-                            node.setFixedFrequency(v)
-                            setValue(v)
+                            props.onChange({
+                                ...data,
+                                frequency: v
+                            }, true)
                             break
                     }
+                }}
+            />
+            <div>
+                {data.gain}
+            </div>
+            <Slider
+                value={data.gain}
+                min={0}
+                max={1}
+                step={0.1}
+                onChange={(e, v) => {
+                    console.log(v)
+                    v = v as number
+                    props.onChange({
+                        ...data,
+                        gain: v
+                    }, true)
                 }}
             />
         </div>
